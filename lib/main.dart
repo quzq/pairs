@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'pairs',
+      title: 'Pairs',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -47,6 +47,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<int> _numbers = [];
+  int? _selectedIndex = null;
 
   void _initNumbers() {
     List<int> seed = new List.generate(8, (i) => i);
@@ -55,36 +56,49 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  chunk(list, int length) => list.isEmpty
-      ? list
-      : ([list.take(length)]
-        ..addAll(chunk(list.skip(length).toList(), length)));
-
-  Widget getButtonMatrix(List<int> numbers) {
-    List chunkedList = chunk(numbers, 4);
-    var rows = chunkedList.map((childArray) {
-      List<int> array = [1, 2, 3, 4]; // todo: childArrayをキャストしてセットしたい
-      return Row(
-          children: array.map((i) {
-        return OutlinedButton(
-          child: Text(i.toString()),
-          style: OutlinedButton.styleFrom(
-            primary: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            side: const BorderSide(),
-          ),
-          onPressed: () {},
-        );
-      }).toList());
+  void _selectIndex(int? index) {
+    setState(() {
+      _selectedIndex = index;
     });
-    return Column(children: rows.toList());
+  }
+
+  List _chunk(list, int length) {
+    List chunkedList = [
+      [1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [1, 2, 3, 4],
+      [5, 6, 7, 8]
+    ];
+    return chunkedList;
   }
 
   @override
   Widget build(BuildContext context) {
     _initNumbers();
+
+    Widget getButtonMatrix(List<int> numbers) {
+      var rows = _chunk(numbers, 4).map((childArray) {
+        List<int> array = childArray;
+        return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: array.map((i) {
+              return OutlinedButton(
+                child: Text(i.toString()),
+                style: OutlinedButton.styleFrom(
+                  primary: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  side: const BorderSide(),
+                ),
+                onPressed: () {},
+              );
+            }).toList());
+      });
+      return Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: rows.toList());
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _initNumbers,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: Icon(Icons.sync),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

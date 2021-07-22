@@ -113,6 +113,22 @@ class _MyHomePageState extends State<MyHomePage> {
     return colors[number];
   }
 
+  void _startGame() {
+    _init();
+    setState(() {
+      _showAnswer = true;
+      _isStarting = true;
+    });
+    Timer.periodic(
+      Duration(seconds: 3),
+      (Timer t) {
+        setState(() {
+          _showAnswer = false;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size deviceSize = MediaQuery.of(context).size;
@@ -207,19 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _showAnswer
             ? null
             : () {
-                _init();
-                setState(() {
-                  _showAnswer = true;
-                  _isStarting = true;
-                });
-                Timer.periodic(
-                  Duration(seconds: 3),
-                  (Timer t) {
-                    setState(() {
-                      _showAnswer = false;
-                    });
-                  },
-                );
+                _startGame();
               },
         tooltip: 'start',
         child: Icon(Icons.sync),

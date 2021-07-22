@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(body: MyHomePage(title: 'title is here!')),
+      home: Scaffold(body: MyHomePage(title: 'Pairs ')),
     );
   }
 }
@@ -47,21 +47,27 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-// List shuffleArray(List items) {
-//   var random = new Random();
+List shuffleArray(List items) {
+  var random = new Random();
 
-//   // Go through all elements.
-//   for (var i = items.length - 1; i > 0; i--) {
-//     // Pick a pseudorandom number according to the list length
-//     var n = random.nextInt(i + 1);
+  for (var i = items.length - 1; i > 0; i--) {
+    var n = random.nextInt(i + 1);
 
-//     var temp = items[i];
-//     items[i] = items[n];
-//     items[n] = temp;
-//   }
+    var temp = items[i];
+    items[i] = items[n];
+    items[n] = temp;
+  }
 
-//   return items;
-// }
+  return items;
+}
+
+List chunkArray(list, int length) {
+  List chunks = [];
+  for (var i = 0; i < list.length; i += length) {
+    chunks.add(list.sublist(i, i + 2 > list.length ? list.length : i + length));
+  }
+  return chunks;
+}
 
 class _MyHomePageState extends State<MyHomePage> {
   List<int> _numbers = [];
@@ -70,39 +76,51 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _showAnswer = false;
   String _debug = '';
   int _score = 0;
-  bool isStarting = false;
+  int _highScore = 0;
+  bool _isStarting = false;
   _MyHomePageState() {
     //_init();
-  }
-
-  List chunkArray(list, int length) {
-    List chunks = [];
-    for (var i = 0; i < list.length; i += length) {
-      chunks
-          .add(list.sublist(i, i + 2 > list.length ? list.length : i + length));
-    }
-    return chunks;
   }
 
   void _init() {
     List<int> seed = new List.generate(8, (i) => i);
     setState(() {
       _numbers = seed + seed;
-      //_numbers = shuffleArray(_numbers) as List<int>;
+      _numbers = shuffleArray(_numbers) as List<int>;
       _visibilities = new List.generate(_numbers.length, (i) => true);
       _score = seed.length;
       _selectedIndex = null;
     });
   }
 
+  int _countVisibled() {
+    return _visibilities.fold<int>(0, (prev, i) {
+      return prev + (i ? 1 : 0);
+    });
+  }
+
+  Color _getColor(int number) {
+    List<Color> colors = [
+      Colors.red,
+      Colors.lightGreen,
+      Colors.blue,
+      Colors.amber,
+      Colors.brown,
+      Colors.indigo,
+      Colors.teal,
+      Colors.purple,
+    ];
+    return colors[number];
+  }
+
   @override
   Widget build(BuildContext context) {
     final Size deviceSize = MediaQuery.of(context).size;
 
-    Widget getButtonMatrix(List<int> numbers) {
+    Widget gameScreen() {
       int columnsLength = 4;
       var rows =
-          chunkArray(numbers, columnsLength).asMap().entries.map((rowEntry) {
+          chunkArray(_numbers, columnsLength).asMap().entries.map((rowEntry) {
         int rowIndex = rowEntry.key;
         List<int> rowValue = rowEntry.value;
         return Row(
@@ -111,29 +129,29 @@ class _MyHomePageState extends State<MyHomePage> {
               int colIndex = rowIndex * columnsLength + colEntry.key;
               int colValue = colEntry.value;
               bool colVisibility = _visibilities[colIndex];
-              return OutlinedButton(
-                child: Text(
-                    _showAnswer || _selectedIndex == colIndex || !colVisibility
-                        ? colValue.toString()
-                        : colVisibility.toString()),
+              return TextButton(
+                child: Text(''),
                 style: OutlinedButton.styleFrom(
                   primary: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   side: const BorderSide(),
+                  backgroundColor: _showAnswer ||
+                          _selectedIndex == colIndex ||
+                          !colVisibility
+                      ? _getColor(colValue)
+                      : Colors.white,
                 ),
                 onPressed: !_visibilities[colIndex]
                     ? null
                     : () {
                         setState(() {
-                          if (_selectedIndex != null) {
-                            int lastValue = _numbers[_selectedIndex ?? 99];
-                            _debug = colValue.toString() +
-                                ':' +
-                                lastValue.toString();
-                            if (colValue == lastValue &&
-                                _selectedIndex != colIndex) {
+                          int? lastValue = _selectedIndex == null
+                              ? null
+                              : _numbers[_selectedIndex ?? 99];
+                          if (colValue == lastValue) {
+                            if (_selectedIndex != colIndex) {
                               _visibilities = _visibilities
                                   .asMap()
                                   .entries
@@ -143,11 +161,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ? false
                                     : visibilityEntry.value;
                               }).toList();
-                            } else {
-                              _score--;
                             }
+                            _selectedIndex = null;
+                          } else {
+                            if (_selectedIndex != null) _score--;
+                            _selectedIndex = colIndex;
                           }
-                          _selectedIndex = colIndex;
+                          if (_score == 0) {
+                            _isStarting = false;
+                          }
+                          if (_countVisibled() == 0) {
+                            _isStarting = false;
+                            _highScore =
+                                _score > _highScore ? _score : _highScore;
+                          }
                         });
                       },
               );
@@ -158,13 +185,23 @@ class _MyHomePageState extends State<MyHomePage> {
           children: rows.toList());
     }
 
+    Widget resultScrreen() {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(_score == 0 ? 'game over' : 'clear !'),
+          Text(_score == 0 ? '' : 'Your score is ' + _score.toString()),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        widget.title + ' ' + _score.toString() + ' ' + _debug,
+        ' score : ' + _score.toString() + ' ' + _debug,
       )),
       body: Center(
-        child: _score > 0 ? getButtonMatrix(_numbers) : Text('game over'),
+        child: _isStarting ? gameScreen() : resultScrreen(),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAnswer
@@ -173,9 +210,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 _init();
                 setState(() {
                   _showAnswer = true;
+                  _isStarting = true;
                 });
                 Timer.periodic(
-                  Duration(seconds: 1),
+                  Duration(seconds: 3),
                   (Timer t) {
                     setState(() {
                       _showAnswer = false;

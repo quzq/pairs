@@ -16,6 +16,10 @@ For help getting started with Flutter, view our
 samples, guidance on mobile development, and a full API reference.
 
 
+
+## build for release
+flutter build apk --release
+
 ## refresh icon
 replace lib/assets/icon.png
 and run `flutter pub pub run flutter_launcher_icons:main` 

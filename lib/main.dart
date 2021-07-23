@@ -147,7 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
               int colValue = colEntry.value;
               bool colVisibility = _visibilities[colIndex];
               return TextButton(
-                child: Text('' + colValue.toString()),
+                child: Text('' /*+ colValue.toString()*/),
                 style: OutlinedButton.styleFrom(
                     primary: Colors.blueGrey,
                     shape: RoundedRectangleBorder(
@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             !colVisibility
                         ? _getColor(colValue)
                         : Colors.white,
-                    minimumSize: Size(100, 100)),
+                    minimumSize: Size(80, 80)),
                 onPressed: !_visibilities[colIndex]
                     ? null
                     : () {

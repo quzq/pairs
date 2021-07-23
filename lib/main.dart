@@ -78,6 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _score = 0;
   int _highScore = 0;
   bool _isStarting = false;
+  bool _showTitle = true;
   _MyHomePageState() {
     //_init();
   }
@@ -146,19 +147,23 @@ class _MyHomePageState extends State<MyHomePage> {
               int colValue = colEntry.value;
               bool colVisibility = _visibilities[colIndex];
               return TextButton(
-                child: Text(''),
+                child: Text('' + colValue.toString()),
                 style: OutlinedButton.styleFrom(
-                  primary: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  side: const BorderSide(),
-                  backgroundColor: _showAnswer ||
-                          _selectedIndex == colIndex ||
-                          !colVisibility
-                      ? _getColor(colValue)
-                      : Colors.white,
-                ),
+                    primary: Colors.blueGrey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(
+                        color: (colIndex == _selectedIndex
+                            ? Colors.red
+                            : Colors.blueGrey),
+                        width: 3),
+                    backgroundColor: _showAnswer ||
+                            _selectedIndex == colIndex ||
+                            !colVisibility
+                        ? _getColor(colValue)
+                        : Colors.white,
+                    minimumSize: Size(100, 100)),
                 onPressed: !_visibilities[colIndex]
                     ? null
                     : () {
@@ -184,9 +189,11 @@ class _MyHomePageState extends State<MyHomePage> {
                             _selectedIndex = colIndex;
                           }
                           if (_score == 0) {
+                            _showTitle = false;
                             _isStarting = false;
                           }
                           if (_countVisibled() == 0) {
+                            _showTitle = false;
                             _isStarting = false;
                             _highScore =
                                 _score > _highScore ? _score : _highScore;
@@ -201,33 +208,59 @@ class _MyHomePageState extends State<MyHomePage> {
           children: rows.toList());
     }
 
-    Widget resultScrreen() {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Text(_score == 0 ? 'game over' : 'clear !'),
-          Text(_score == 0 ? '' : 'Your score is ' + _score.toString()),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(
-        ' score : ' + _score.toString() + ' ' + _debug,
-      )),
-      body: Center(
-        child: _isStarting ? gameScreen() : resultScrreen(),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAnswer
-            ? null
-            : () {
-                _startGame();
-              },
-        tooltip: 'start',
-        child: Icon(Icons.sync),
-      ),
-    );
+    return _isStarting
+        ? Scaffold(
+            appBar: AppBar(
+              title: Text(
+                ' score : ' + _score.toString() + ' ' + _debug,
+              ),
+              actions: [
+                IconButton(
+                    onPressed: () {
+                      _showTitle = true;
+                      _isStarting = false;
+                    },
+                    icon: Icon(Icons.exit_to_app))
+              ],
+            ),
+            body: Center(child: gameScreen()),
+          )
+        : Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                      _showTitle
+                          ? 'Pairs'
+                          : _score == 0
+                              ? 'GAME OVER'
+                              : 'CLEAR !',
+                      style: TextStyle(fontSize: 44)),
+                  Text(
+                    _showTitle
+                        ? 'High score : ' + _highScore.toString()
+                        : _score == 0
+                            ? ''
+                            : 'Your score is ' + _score.toString(),
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        _startGame();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.blue,
+                        onPrimary: Colors.white,
+                        minimumSize: Size(150, 50),
+                      ),
+                      child: Text(
+                        'start',
+                        style: TextStyle(fontSize: 24),
+                      ))
+                ],
+              ),
+            ),
+          );
   }
 }
